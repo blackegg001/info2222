@@ -22,8 +22,10 @@ class Base(DeclarativeBase):
     pass
 
 # model to store user information
+from sqlalchemy import Boolean  # Import the Boolean class from sqlalchemy
+
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "Userinfo"
     
     # looks complicated but basically means
     # I want a username column of type string,
@@ -32,7 +34,10 @@ class User(Base):
     # in other words we've mapped the username Python object property to an SQL column of type String 
     username: Mapped[str] = mapped_column(String, primary_key=True)
     password: Mapped[str] = mapped_column(String)
-
+    salt: Mapped[int] = mapped_column(Integer)
+    onlinestatus = Column(Boolean, nullable=False, default=False)
+    role = Column(String, nullable=False, default="None")
+    
 class Friend(Base):
     __tablename__ = "Friends"
     
@@ -50,7 +55,7 @@ class Friend(Base):
 class Friendrequest(Base):
     __tablename__ = "Friendrequest"
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    #id = Column(Integer, primary_key=True, autoincrement=True)
     sender = Column(String(255), ForeignKey('user.username'), nullable=False)
     receiver = Column(String(255), ForeignKey('user.username'), nullable=False)
     receiver: Mapped[str] = mapped_column(String, primary_key=True)
@@ -75,11 +80,12 @@ class Chatroom(Base):
     __tablename__ = "Chatroom"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255), nullable=False)
+    #name = Column(String(255), nullable=False)
     creator = Column(String(255), ForeignKey('user.username'), nullable=False)
     participant = Column(String(255), ForeignKey('user.username'), nullable=False)
 
-    
+
+
 
 # stateful counter used to generate the room id
 class Counter():
@@ -98,6 +104,13 @@ class Room():
         # for example self.dict["John"] -> gives you the room id of 
         # the room where John is in
         self.dict: Dict[str, int] = {}
+    
+    def get_room_receiver(self, room_id: int, exclusion: str):
+        print(self.dict)
+        for key, value in self.dict.items():
+            if value == room_id and key != exclusion:
+                return key
+        return None
 
     def create_room(self, sender: str, receiver: str) -> int:
         room_id = self.counter.get()

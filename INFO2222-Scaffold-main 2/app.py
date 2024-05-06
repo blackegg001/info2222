@@ -8,6 +8,8 @@ from flask import Flask, render_template, request, abort, url_for
 from flask_socketio import SocketIO
 import db
 import secrets
+import os
+import hashlib
 
 # import logging
 
@@ -29,6 +31,18 @@ import socket_routes
 def index():
     return render_template("index.jinja")
 
+# Function to generate a salt
+def generate_salt(length=16):
+    return os.urandom(length)
+
+# Function to hash a password with a salt
+def hash_password(password, salt):
+    if isinstance(salt, str):
+        salt_bytes = bytes.fromhex(salt)  
+    else:
+        salt_bytes = salt
+    return hashlib.sha256(password.encode('utf-8') + salt_bytes).hexdigest()
+
 # login page
 @app.route("/login")
 def login():    
@@ -41,14 +55,22 @@ def login_user():
         abort(404)
 
     username = request.json.get("username")
-    password = request.json.get("password")
+    password = request.json.get("password") # this is the password that the user entered
+    print(f"user-{username}, password-{password}")
+    
 
     user =  db.get_user(username)
+    print(user.password)# this is the password that is stored in the database
+    hashed_password_database = hash_password(user.password, user.salt)
+    hashed_password_input = hash_password(password, user.salt)
     if user is None:
         return "Error: Username or Password does not exist!"
 
-    if user.password != password:
+    if hashed_password_database != hashed_password_input:
         return "Error: Username or Password does not match!"
+    
+    db.change_status(username, True)
+    print(f"{username} is now online!!!")
 
     return url_for('home', username=request.json.get("username"))
 
@@ -60,15 +82,19 @@ def signup():
 # handles a post request when the user clicks the signup button
 @app.route("/signup/user", methods=["POST"])
 def signup_user():
-    if not request.is_json:
-        abort(404)
-    username = request.json.get("username")
-    password = request.json.get("password")
+        if not request.is_json:
+            abort(404)
+        username = request.json.get("username")
+        password = request.json.get("password")
 
-    if db.get_user(username) is None:
-        db.insert_user(username, password)
-        return url_for('home', username=username)
-    return "Error: User already exists!"
+        salt = generate_salt()
+
+        if db.get_user(username) is None:
+            db.insert_user(username, password, salt)
+            return url_for('home', username=username)
+        return "Error: User already exists!"
+
+
 
 # handler when a "404" error happens
 @app.errorhandler(404)
@@ -81,8 +107,8 @@ def home():
     if request.args.get("username") is None:
         abort(404)
     friendlist = db.get_friendlist(request.args.get("username"))
-    #friendrelist = db.get_friendrequestlist(request.args.get("username"))
-    return render_template("home.jinja", username=request.args.get("username"), friend_list=friendlist)
+    friendreqlist = db.get_friendrequestlist(request.args.get("username"))
+    return render_template("home.jinja", username=request.args.get("username"), friend_list=friendlist, friend_req_list=friendreqlist)
 
 
 

@@ -36,6 +36,11 @@
 <h1>Messaging App </h1>
 
 <main>
+    <section id="logout">
+        <p class="text">logout</p>
+        <button onclick="logout()">logout</button>
+    </section>
+
     <!-- The messages are displayed here -->
     <section id="message_box"></section>
 
@@ -66,6 +71,41 @@
         {% endfor %}
         </ul>
     </section>
+
+    <section id = "accept or reject">
+        <p class="text">send friend request to: </p>
+        <input id= "friendreq_receiver">
+        <button onclick="send_friend_req()">Add friend</button>
+
+        <p class="text">Accept friend request from: </p>
+        <input id= "acceptfriendreq_receiver">
+        <button onclick="acceptfriend_req()">Accept friend request</button>
+
+        <p class="text">Reject friend request from: </p>
+        <input id= "rejectfriendreq_receiver">
+        <button onclick="rejectfriend_req()">Reject friend request</button>
+    </section>
+
+    <section id = "friendreqlist">
+        <p class="text">Friend Requests: </p>
+        <ul>
+        {% for i in friend_req_list %}
+        <li>{{ i }}</li> 
+        {% endfor %}
+        </ul>
+    </section>
+
+    <section id = "deletefriend">
+        <p class="text">delete friend: </p>
+        <input id= "deletewho" placeholder="username">
+        <button onclick="unfriend()">unfriend</button>
+
+    </section>
+
+    
+
+
+
 
 <script src="/static/js/libs/socket.io.min.js"></script>
 <script>
@@ -123,6 +163,8 @@
         socket.emit("send", username, message, room_id);  
     } 
 
+
+
     // we emit a join room event to the server to join a room
     function join_room() {
        
@@ -165,6 +207,42 @@
         let child = $(`<p style="color:${color}; margin: 0px;"></p>`).text(message);
         box.append(child);
     }
+
+    function send_friend_req() {
+        let requsername = $("#friendreq_receiver").val();
+        $("#friendreq_receiver").val("");
+        socket.emit("requestfriend", username, requsername, (res) => {
+            alert(res);
+            window.navigate(location);
+        });
+    }
+
+    function acceptfriend_req() {
+        let message = $("#acceptfriendreq_receiver").val();
+        $("#acceptfriendreq_receiver").val("");
+        socket.emit("acceptfriend", message, username, (res) => {
+            alert(res);
+        });
+    }
+
+    function rejectfriend_req() {
+        let message = $("#rejectfriendreq_receiver").val();
+        $("#rejectfriendreq_receiver").val("");
+        socket.emit("rejectfriend", message, (res) => {
+            alert(res);
+        });
+    }
+    
+    function unfriend() {
+        let message = $("#deletewho").val();
+        $("#deletewho").val("");
+        socket.emit("unfriend", username, message, (res) => {
+            alert(res);
+    });
+
+    }
+
+    
     
 </script>
 {% endblock %}
