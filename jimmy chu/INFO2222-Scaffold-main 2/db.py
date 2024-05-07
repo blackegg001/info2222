@@ -45,7 +45,7 @@ def get_friendlist(username):
         friend_usernames = [friend.user_username2 for friend in bruh]
 
         users = session.query(User).filter(User.username.in_(friend_usernames)).all()
-        userinfolist = []
+        userlist = []
 
         # Debug print information for each user
         #print("Friend List Information:")
@@ -64,11 +64,11 @@ def get_friendlist(username):
             else:
                 status = "unknown"
 
-            userinfolist.append(f"{u.username}, role:{u.role}, status: {status}")
+            userlist.append(f"{u.username}, role:{u.role}, status: {status}")
             print(f"Debug: {u.username}, role:{u.role} status: {status}")
         
 
-        return userinfolist
+        return userlist
 
 #save friend
 def save_friend(username1, username2):
