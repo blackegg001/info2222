@@ -1,0 +1,176 @@
+{% extends 'base.jinja' %}
+
+
+{% block content %} 
+<style>
+
+    header {
+        padding: 0px;
+        text-align: center;
+        font-size: 30px;
+        color: green;
+    }
+
+    nav {
+        border-bottom: 1px solid black;
+        overflow: auto
+    }
+
+    ul.article {
+        margin: 1px; 
+        list-style-type: none; 
+        padding: 1px;    
+    }
+
+    #repository_box {
+        border: 1px solid black; 
+        max-height: 600px; 
+        max-width: 1200px; 
+        overflow: auto;
+        padding: 2px;
+        display: flex;
+    }
+
+    .parallel_display {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    }
+
+    .parallel_display > section {
+    flex-basis: 48%; 
+    }
+
+    .text  {
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+
+</style>
+
+<nav style="border-bottom: 1px solid black;">
+    <ol style="float: right">
+        <li style="display:inline-block">Username:  {{ username }} </li>
+    </ol>
+    <ol style="float: left">
+        <li style="display:inline-block"></li>
+        <button onclick="logout()">logout</button>
+    </ol>
+    <ol style="margin-left: 200px">
+        <button onclick="message_app()">Switch to chat</button>
+    </ol>
+</nav>
+
+
+<header>
+  <h2>Knowledge repository </h2>
+</header>
+
+
+<main>
+   
+    <form method="post">
+    {{ form.hidden_tag() }}
+        <textarea name="user_input" style="height: 100px; width: 500px; " 
+        placeholder="Write an article, first enter will be the title, you can edit your article in the box below"></textarea>
+        <input type="submit"  value="Enter">
+        <button type="button" onclick=show()>Show Author</button>
+        <button type="button" onclick=save()>Save changes</button>
+    </form>
+
+    <div class="parallel_display" style="margin-top: 20px">
+        <section id="Comment_choice">
+            <p class="text">Comment on whose article: </p>
+            <input id="receiver" placeholder="username">
+            <button onclick="comment_choice()">Comment</button>
+        </section>
+
+        <section id="Comment_box" style="display: none" >
+            <p class="text">Comment: </p>
+            <input id="message" placeholder="message">
+            <button onclick="comment_send">Send</button>
+            <button onclick="leave()">Leave Room</button>
+        </section>
+    
+        <section id="Modify_choice">
+            <p class="text">Modify whose article: </p>
+            <input id="receiver" placeholder="username">
+            <button onclick="comment_choice()">Modify</button>
+        </section>
+
+        <section id="Modify_box" style="display: none" >
+            <p class="text">Modify: </p>
+            <input id="message" placeholder="message">
+            <button onclick="send()">Send</button>
+            <button onclick="leave()">Leave Room</button>
+        </section>
+
+    </div>
+
+    <div class="parallel_display">
+
+        <section id="Delete_choice">
+            <p class="text">Delete whose article or comment: </p>
+            <input id="receiver" placeholder="username">
+            <button onclick="comment_choice()">delete article</button>
+            <button onclick="comment_choice()">delete comment</button>
+        </section>
+
+
+        <section id="Mute_choice">
+            <p class="text">Enter the username to mute/unmute: </p>
+            <input id="receiver" placeholder="username">
+            <button onclick="comment_choice()">Mute</button>
+            <button onclick="comment_choice()">Unmute</button>
+        </section>
+
+    </div>
+
+    <div contenteditable="true">
+        <section id="repository_box">
+            <ul class = "article">
+                <h3 style="text-align: center;font-size: 15px; margin-bottom: 10px"><strong>{{ user_inputs[0] }}</strong></h3>
+                <li id = "author" style="display: none; text-align: right; margin-bottom: 10px;">Written by user {{ username }}</li>
+                {% for input_text in user_inputs[1:] %}
+                    <li>{{ input_text }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+    
+
+    
+
+
+
+<script src="/static/js/libs/socket.io.min.js"></script>
+<script>
+
+    function show() {
+        $("#input_box").hide();
+        $("#author").show();
+    }
+
+    function writeTexts() {
+        alert("hi")
+        let box = $("#repository_box");
+        let child = $(`<p style="text-align: center; font-size: 15px;"></p>`).text(user_inputs[0]);
+        box.append(child);
+        for (let i = 1; i < user_inputs.length; i++) {
+            let inputs = $(`<li>${user_inputs[i]}</li>`);
+            box.append(inputs);
+        }
+    }
+
+    async function message_app() {
+        let msgURL = "{{ url_for('msg_user') }}";
+        res = await axios.post(msgURL, {});
+        window.open(res.data, "_self");
+    }
+
+    
+    
+    
+</script>
+
+{% endblock %}
