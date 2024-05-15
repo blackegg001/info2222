@@ -117,6 +117,7 @@ def repository():
         print(user_inputs.get(username) != None)
         print(user_inputs)
         return render_template('repository.jinja', showItems = showItems, username = username, user_text=user_text, form=form, user_inputs=user_inputs[username])
+    
     return render_template('repository.jinja', showItems = showItems, username = username, form=form, user_inputs = [])
 
 # handles a post request when the user clicks the signup button

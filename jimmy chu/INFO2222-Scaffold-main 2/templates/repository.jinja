@@ -55,8 +55,7 @@
     padding: 10px;
     }
 
-    
-    .box-item {
+     .box-item {
     border: 1px solid rgba(0, 0, 0, 0.8);
     padding: 20px;
     }
@@ -88,30 +87,31 @@
 
 
 <main>
-   <section id="Make_article">
+    <section id="Make_article">
         <p class="text">Write an article: </p>
         <button onclick="showForm()">Write</button>
     </section>
-    <form method="post" style="display: none" id = "Write_article" onsubmit="showTexts()">
-    {{ form.hidden_tag() }}
-        <textarea name="user_input" style="height: 100px; width: 500px; " 
-        placeholder="Write an article, first enter will be the title, you can edit your article in the box below"></textarea>
-        <input type="submit"  value="Enter">
-        <button type="button" onclick=save()>Save changes</button>
-    </form>
-
-    <div class="parallel_display" style="margin-top: 20px">
+        <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
+        <button style="display: none" id="saveButton" onclick=saveTitle() >Save Title</button>
+        <textarea id="Write_article" style="height: 100px; width: 500px; display: none" placeholder="Write an article"></textarea>
+        <button style="display: none" id="saveButton2">Save</button>
+    
+    
         <section id="Comment_choice">
             <p class="text">Comment on whose article: </p>
             <input id="receiver" placeholder="username">
-            <button onclick="comment_choice()">Comment</button>
+            <button onclick="a()">Comment</button>
         </section>
 
-    
+
+            <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
+            <button id="saveButton3"style="display: none" onclick=aa() >Save</button>
+            
+    <div class="parallel_display" style="margin-top: 20px">
         <section id="Modify_choice">
             <p class="text">Modify whose article: </p>
             <input id="receiver" placeholder="username">
-            <button onclick="comment_choice()">Modify</button>
+            <button onclick="b()">Modify</button>
         </section>
 
         <section id="Modify_box" style="display: none" >
@@ -141,43 +141,22 @@
         </section>
 
     </div>
-    
-    <div class="outerBox">
-        <div  class =  "innerBox" id="innerBox1" style = "display: none" contenteditable="true" >
-            <div  class = "box-item"  id="box1">
-                <ul class = "article">
-                    <h3 style="text-align: center;font-size: 15px; margin-bottom: 10px"><strong>{{ user_inputs[0] }}</strong></h3>
-                    <li id = "author" style="display: none; text-align: right; margin-bottom: 10px;">Written by user {{ username }}</li>
-                    {% for input_text in user_inputs[1:] %}
-                        <li>{{ input_text }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+
+    <div class="outerBox" id="outerBox">
+        <div class="innerBox" id="innerBox1">
+            <div  class = "box-item"  id="box1"></div>
             <div  class = "box-item"  id="comment1"></div>
         </div>
-        <div class="innerBox" id="innerBox2" style = "display: none">
+        <div class = "innerBox" id="innerBox2">
             <div  class = "box-item"  id="box2"></div>
             <div  class = "box-item"  id="comment2"></div>
         </div>
-        <div class = "innerBox" id="innerBox3" style = "display: none">
+        <div class = "innerBox" id="innerBox3">
             <div  class = "box-item"  id="box3"></div>
             <div  class = "box-item"  id="comment3"></div>
         </div>
-        <div class = "innerBox" id="innerBox4" style = "display: none">
-            <div  class = "box-item"  id="box4"></div>
-            <div  class = "box-item"  id="comment4"></div>
-        </div>
-        <div class = "innerBox" id="innerBox5" style = "display: none">
-            <div  class = "box-item"  id="box5"></div>
-            <div  class = "box-item"  id="comment5"></div>
-        </div>
-        <div class = "innerBox" id="innerBox6" style = "display: none">
-            <div  class = "box-item"  id="box6"></div>
-            <div  class = "box-item"  id="comment6"></div>
-        </div>
-
     </div>
-    
+
 
     
 
@@ -185,22 +164,67 @@
 
 <script src="/static/js/libs/socket.io.min.js"></script>
 <script>
+    
+    const titleContainer = document.getElementById('Write_title');
+    const articleContainer = document.getElementById('Write_article');
+    const commentContainer = document.getElementById('Write_comment');
+    const box1 = document.getElementById('box1'); 
+    const comment1 = document.getElementById('comment1'); 
 
-    {% if showItems %}
-        $("#Make_article").hide();
-        $("#Write_article").show();
-        $("#author").show();
-        $("#article1").show();
-        for (let i = 1; i < 7; i++) {
-            let id = "innerBox" + i; 
-            $("#" + id).show(); 
-        }
-    {% endif %}
+    let userTitle = ''; 
 
+    titleContainer.addEventListener('input', function() {
+        userTitle = titleContainer.value; 
+        updateBox1Content(); 
+    });
+
+    articleContainer.addEventListener('input', function() {
+        updateBox1Content(); 
+    });
+    commentContainer.addEventListener('input', function() {
+        updateComment1Content(); 
+    });
+
+    function updateBox1Content() {
+        const userInputValue = articleContainer.value;
+        const lines = userInputValue.split('\n');
+        const articleContent = lines.join('<br>'); 
+
+        box1.innerHTML = `<h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>${userTitle}</strong></h3>
+        <p id = "author" style = "text-align: right;" margin-bottom: 10px;">Written by user {{ username }}</p>
+        ${articleContent}`;
+    }
+    function updateComment1Content() {
+        const userInputValue = commentContainer.value;
+        const lines = userInputValue.split('\n');
+        const commentContent = lines.join('<br>'); 
+        comment1.innerHTML = ` <p id = "commentor" margin-bottom: 10px;">Comment by user {{ username }}</p>
+        ${commentContent}`;
+    }
     function showForm() {
         $("#Make_article").hide();
-        $("#Write_article").show();
+        $("#Write_title").show();
+        $("#saveButton").show();
+        
     }
+    function saveTitle() {
+        $("#Write_title").hide();
+        $("#Write_article").show();
+        $("#saveButton").hide();
+        $("#saveButton2").show(); 
+        
+    }
+    
+    function a() {
+        $("#Comment_choice").hide();
+        $("#Write_comment").show();
+        $("#saveButton3").show();
+    }
+    function b() {
+        $("#Modify_choice").hide();
+        $("#Modify_box").show();
+    }
+
 
     async function message_app() {
         let msgURL = "{{ url_for('msg_user') }}";

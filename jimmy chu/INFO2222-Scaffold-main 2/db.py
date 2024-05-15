@@ -186,7 +186,6 @@ def get_room(creator_name: str, recver_name: str):
         else:
             return None
 
-
 # get a room from the database by id
 def get_room_by_id(room_id: int):
     with Session(engine) as session:
