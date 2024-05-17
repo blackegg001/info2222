@@ -1,0 +1,51 @@
+<!-- 
+Sign up page, pretty much the same as login.
+-->
+{% extends 'base.jinja' %}
+
+
+{% block content %} 
+    <h1>Sign Up</h1>
+    <p>Username</p>
+    <input id="username"/>
+    <p>Password</p>
+    <input id="password" type="password"/>
+
+    <!-- Role selection section -->
+    <p>Select your role:</p>
+    <select id="role">
+        <option value="student">Student</option>
+        <option value="academic">Academic</option>
+        <option value="administrative_staff">administrative_staff</option>
+        <option value="admin_user">admin_user</option>
+    </select>
+
+    <button onclick="signup()">Sign up</button>
+
+    <script>
+         function isValidURL(string) {
+            if (string.length == 0) {
+                return false;
+            }
+            if (string[0] == "/") {
+                return true;
+            }
+            return false;
+        }
+
+        // this function is identical to login(), see login.jinja
+        async function signup() {
+            let loginURL = "{{ url_for('signup_user') }}";
+            let res = await axios.post(loginURL, {
+                username: $("#username").val(),
+                password: $("#password").val(),
+                role: $("#role").val() 
+            });
+            if (!isValidURL(res.data)) {
+                alert(res.data);
+                return;
+            }
+            window.open(res.data, "_self")
+        }
+    </script>
+{% endblock %}
