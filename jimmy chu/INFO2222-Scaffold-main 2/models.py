@@ -11,9 +11,9 @@ or use SQLite, if you're not into fancy ORMs (but be mindful of Injection attack
 '''
 
 from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Dict
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, Text
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import ForeignKey
 
@@ -132,3 +132,11 @@ class Room():
             return None
         return self.dict[user]
     
+class UserArticles(Base):
+    __tablename__ = "UserArticles"
+
+    userName: Mapped[str] = mapped_column(String(255), nullable=False)
+    article_id = Column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+

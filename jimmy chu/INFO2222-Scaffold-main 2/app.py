@@ -4,7 +4,7 @@ this is where you'll find all of the get/post request handlers
 the socket event handlers are inside of socket_routes.py
 '''
 
-from flask import Flask, render_template, request, abort, url_for
+from flask import Flask, render_template, request, abort, url_for, jsonify
 from flask_socketio import SocketIO
 import db
 import secrets
@@ -28,7 +28,7 @@ user_inputs = {}
 # secret key used to sign the session cookie
 app.config['SECRET_KEY'] = secrets.token_hex()
 socketio = SocketIO(app)
-
+db.clear()
 # don't remove this!!
 import socket_routes
 class MyForm(FlaskForm):
@@ -166,6 +166,26 @@ def home():
     friendreqlist = db.get_friendrequestlist(request.args.get("username"))
     return render_template("home.jinja", username=username, friend_list=friendlist, friend_req_list=friendreqlist)
     
+@app.route('/submit_article', methods=['POST'])
+def submit_article():
+    data = request.get_json()
+    user_title = data.get('userTitle')
+    article_content = data.get('articleContent')
+    print(user_title)
+    print(article_content)
+    db.store_article(username,user_title,article_content)
+
+    return 'Article submitted successfully!'
+
+@app.route('/get_article', methods=['GET'])
+def get_article():
+    content = db.get_articles_by_username(username)
+    title = db.get_titles_by_username(username)
+    print(content)
+    print(title)
+    data = {"content": content, "title": title}
+    return jsonify(data)
+
 
 if __name__ == '__main__':
     socketio.run(app)

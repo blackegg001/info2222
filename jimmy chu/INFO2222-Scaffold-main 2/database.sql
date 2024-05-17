@@ -84,3 +84,11 @@ add column last_chatroom_id default false;
 
 ALTER TABLE user
 RENAME TO Userinfo;
+
+CREATE TABLE UserArticles (
+    article_id INT AUTO_INCREMENT PRIMARY KEY,
+    userName  VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+);
+

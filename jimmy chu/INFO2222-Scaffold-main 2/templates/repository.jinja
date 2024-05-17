@@ -16,21 +16,6 @@
         overflow: auto
     }
 
-    ul.article {
-        margin: 1px; 
-        list-style-type: none; 
-        padding: 1px;    
-    }
-
-    #repository_box {
-        border: 1px solid black; 
-        max-height: 600px; 
-        max-width: 1200px; 
-        overflow: auto;
-        padding: 2px;
-        display: flex;
-    }
-
     .parallel_display {
     display: flex;
     justify-content: space-between;
@@ -87,25 +72,26 @@
 
 
 <main>
+    <button id="loadArticlesButton" style = "margin-bottom: 20px">Load articles</button>
     <section id="Make_article">
         <p class="text">Write an article: </p>
-        <button onclick="showForm()">Write</button>
+        <button id = 'addBoxButton' onclick="showForm()">Write</button>
     </section>
-        <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
-        <button style="display: none" id="saveButton" onclick=saveTitle() >Save Title</button>
-        <textarea id="Write_article" style="height: 100px; width: 500px; display: none" placeholder="Write an article"></textarea>
-        <button style="display: none" id="saveButton2">Save</button>
-    
-    
-        <section id="Comment_choice">
-            <p class="text">Comment on whose article: </p>
-            <input id="receiver" placeholder="username">
-            <button onclick="a()">Comment</button>
-        </section>
+
+    <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
+    <button style="display: none" id="saveButton" onclick=saveTitle() >Save Title</button>
+    <textarea id="Write_article" style="height: 100px; width: 500px; display: none" placeholder="Write an article"></textarea>
+    <button type="submit" formaction="/submit_article" style="display: none" onclick="saveArticle()" id="saveButton2">Save</button>
 
 
-            <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
-            <button id="saveButton3"style="display: none" onclick=aa() >Save</button>
+    <section id="Comment_choice">
+        <p class="text">Comment on whose article: </p>
+        <input id="receiver" placeholder="username">
+        <button onclick="a()">Comment</button>
+    </section>
+
+    <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
+    <button id="saveButton3"style="display: none" onclick=aa() >Save</button>
             
     <div class="parallel_display" style="margin-top: 20px">
         <section id="Modify_choice">
@@ -143,19 +129,9 @@
     </div>
 
     <div class="outerBox" id="outerBox">
-        <div class="innerBox" id="innerBox1">
-            <div  class = "box-item"  id="box1"></div>
-            <div  class = "box-item"  id="comment1"></div>
-        </div>
-        <div class = "innerBox" id="innerBox2">
-            <div  class = "box-item"  id="box2"></div>
-            <div  class = "box-item"  id="comment2"></div>
-        </div>
-        <div class = "innerBox" id="innerBox3">
-            <div  class = "box-item"  id="box3"></div>
-            <div  class = "box-item"  id="comment3"></div>
-        </div>
     </div>
+
+
 
 
     
@@ -164,43 +140,27 @@
 
 <script src="/static/js/libs/socket.io.min.js"></script>
 <script>
-    
     const titleContainer = document.getElementById('Write_title');
     const articleContainer = document.getElementById('Write_article');
     const commentContainer = document.getElementById('Write_comment');
-    const box1 = document.getElementById('box1'); 
-    const comment1 = document.getElementById('comment1'); 
-
     let userTitle = ''; 
-
+    let articleContent = '';
     titleContainer.addEventListener('input', function() {
         userTitle = titleContainer.value; 
-        updateBox1Content(); 
     });
 
     articleContainer.addEventListener('input', function() {
-        updateBox1Content(); 
-    });
-    commentContainer.addEventListener('input', function() {
-        updateComment1Content(); 
-    });
-
-    function updateBox1Content() {
         const userInputValue = articleContainer.value;
         const lines = userInputValue.split('\n');
-        const articleContent = lines.join('<br>'); 
-
-        box1.innerHTML = `<h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>${userTitle}</strong></h3>
-        <p id = "author" style = "text-align: right;" margin-bottom: 10px;">Written by user {{ username }}</p>
-        ${articleContent}`;
-    }
-    function updateComment1Content() {
+        articleContent = lines.join('<br>'); 
+    });
+    commentContainer.addEventListener('input', function() {
         const userInputValue = commentContainer.value;
         const lines = userInputValue.split('\n');
-        const commentContent = lines.join('<br>'); 
-        comment1.innerHTML = ` <p id = "commentor" margin-bottom: 10px;">Comment by user {{ username }}</p>
-        ${commentContent}`;
-    }
+        commentContent = lines.join('<br>');
+    });
+
+        
     function showForm() {
         $("#Make_article").hide();
         $("#Write_title").show();
@@ -212,6 +172,11 @@
         $("#Write_article").show();
         $("#saveButton").hide();
         $("#saveButton2").show(); 
+    }
+    function saveArticle() {
+        $("#Write_article").hide();
+        $("#saveButton2").hide(); 
+        $("#Make_article").show();
         
     }
     
@@ -231,6 +196,75 @@
         res = await axios.post(msgURL, {});
         window.open(res.data, "_self");
     }
+
+    // JavaScript code (client-side)
+    document.getElementById('saveButton2').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/submit_article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userTitle, articleContent }),
+            });
+
+            if (response.ok) {
+                console.log('Article submitted successfully!');
+            } else {
+                console.error('Error submitting article:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+    let boxCount = 0
+    $(document).ready(function() {
+        // When the button is clicked
+        $('#loadArticlesButton').click(function() {
+            // Make an AJAX request to your Python function
+            $.ajax({
+                type: 'GET',
+                url: '/get_article', // Replace with your actual URL
+                success: function(data) {
+                    $('#outerBox').empty();
+                    // Iterate through titles, usernames, and content
+                    for (let i = 0; i < data.title.length; i++) {
+                        // Create a new inner box
+                        const boxContainer = document.getElementById('outerBox');
+                        const newBox = document.createElement('div');
+                        newBox.classList.add('innerBox');
+                        let boxItemId = `box${boxCount}`;
+                        let commentId = `comment${boxCount}`;
+                        // Set the IDs for the box item and comment elements
+                        const boxItem = document.createElement('div');
+                        boxItem.classList.add('box-item');
+                        boxItem.id = boxItemId;
+                        const comment = document.createElement('div');
+                        comment.classList.add('box-item');
+                        comment.id = commentId;
+                        // Append the box item and comment to the new inner box
+                        newBox.appendChild(boxItem);
+                        newBox.appendChild(comment);
+                        // Append the new inner box to the container
+                        boxContainer.appendChild(newBox);
+                        boxCount++;
+                        const listItem = document.createElement('li');
+                        listItem.style.listStyle = "none";
+                        listItem.innerHTML = `
+                            <h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>${data.title[i]}</strong></h3>
+                            <p id="author" style="text-align: right; margin-bottom: 10px;">Written by user {{username}}</p>
+                            <p>${data.content[i]}</p>
+                        `;
+                        document.getElementById(boxItemId).appendChild(listItem);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching articles:', error);
+                }
+            });
+        });
+    });
+
 
     
     

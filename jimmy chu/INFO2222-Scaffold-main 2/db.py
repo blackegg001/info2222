@@ -6,7 +6,7 @@ database file, containing all the logic to interface with the sql database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from models import *
-
+import sqlite3
 from pathlib import Path
 
 
@@ -22,7 +22,11 @@ engine = create_engine("sqlite:///database/main.db", echo=False)
 
 # initializes the database
 Base.metadata.create_all(engine)
-
+def clear():
+    print("hhhhhhh")
+    with Session(engine) as session:
+        session.query(UserArticles).delete()
+        session.commit()
 # inserts a user to the database
 def insert_user(username: str, password: str, salt):
     with Session(engine) as session:
@@ -250,3 +254,89 @@ def delete_user(username: str):
             print(f"User '{username}' has been successfully deleted.")
         else:
             print(f"Error: User '{username}' is not in the database.")
+
+def store_article(userName, title, content):
+    with Session(engine) as session:
+        try:
+            article = UserArticles(userName=userName, title=title, content=content)
+            session.add(article)
+            session.commit()
+            return True  # Success
+        except Exception as e:
+            session.rollback()
+            print(f"Error storing article: {e}")
+            return False  # Failed
+
+# Example usage:
+# store_article(session, user_id=1, title="My First Article", content="Lorem ipsum...")
+
+def get_articles_by_username(username):
+    with Session(engine) as session:
+        try:
+            user = session.query(UserArticles).filter_by(userName=username).first()
+            if user:
+                all = session.query(UserArticles).filter_by(userName=username).all()
+                articles = [a.content for a in all]
+                return articles
+            else:
+                return []  # User not found
+        except Exception as e:
+            print(f"Error retrieving articles: {e}")
+            return None  # Failed
+        
+def get_titles_by_username(username):
+    with Session(engine) as session:
+        try:
+            user = session.query(UserArticles).filter_by(userName=username).first()
+            if user:
+                all = session.query(UserArticles).filter_by(userName=username).all()
+                titles = [a.title for a in all]
+                return titles
+            else:
+                return []  # User not found
+        except Exception as e:
+            print(f"Error retrieving articles: {e}")
+            return None  # Failed
+
+# Example usage:
+# articles = get_articles_by_username(session, username="blackegg")
+# for article in articles:
+#     print(f"Title: {article.title}, Content: {article.content}")
+
+def drop_table(table_name):
+    try:
+        # Connect to your database
+        connection = sqlite3.connect('database/main.db')
+        cursor = connection.cursor()
+
+        # Execute the DROP TABLE statement
+        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+
+        # Commit the changes
+        connection.commit()
+        print(f"Table '{table_name}' dropped successfully!")
+
+    except sqlite3.Error as e:
+        print(f"Error dropping table: {e}")
+
+    finally:
+        # Close the connection
+        connection.close()
+
+def create_tables():
+    try:
+        with sqlite3.connect('database/main.db') as conn:
+            cursor = conn.cursor()
+            # Execute the CREATE TABLE statements
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS UserArticles (
+                    article_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    userName VARCHAR(255) NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    content TEXT NOT NULL
+                );
+            """)
+            # Commit the changes
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error creating table: {e}")
