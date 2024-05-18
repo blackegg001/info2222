@@ -1,0 +1,96 @@
+<!-- 
+Sign up page, pretty much the same as login.
+-->
+{% extends 'base.jinja' %}
+
+
+{% block content %} 
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 90vh;
+        margin: 0;
+    }
+    h1 {
+        text-align: center;
+        font-size: 4rem;
+        color: #0074D9;
+    }
+    p {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    input {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    button{
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        margin-top: 20px;
+    }
+    select{
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        margin-top: 20px;
+    }
+    a {
+        color: #333;
+        text-decoration: none;
+    }
+    a:hover {
+        color: #0074D9;
+    }
+</style>
+<body>
+    <h1>Sign Up</h1>
+    <p>Username</p>
+    <input id="username"/>
+    <p>Password</p>
+    <input style id="password" type="password"/>
+    <!-- Role selection section -->
+    <p>Select your role:</p>
+    <select id="role">
+        <option value="student">Student</option>
+        <option value="academic">Academic</option>
+        <option value="administrative_staff">administrative_staff</option>
+        <option value="admin_user">admin_user</option>
+    </select>
+
+    <button onclick="signup()">Sign up</button>
+</body>
+    <script>
+         function isValidURL(string) {
+            if (string.length == 0) {
+                return false;
+            }
+            if (string[0] == "/") {
+                return true;
+            }
+            return false;
+        }
+
+        // this function is identical to login(), see login.jinja
+        async function signup() {
+            let loginURL = "{{ url_for('signup_user') }}";
+            let res = await axios.post(loginURL, {
+                username: $("#username").val(),
+                password: $("#password").val()
+            });
+            if (!isValidURL(res.data)) {
+                alert(res.data);
+                return;
+            }
+            window.open(res.data, "_self")
+        }
+    </script>
+{% endblock %}

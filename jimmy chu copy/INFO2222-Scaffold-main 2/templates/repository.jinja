@@ -1,0 +1,386 @@
+{% extends 'base.jinja' %}
+
+
+{% block content %} 
+<style>
+
+    header {
+        padding: 0px;
+        text-align: center;
+        font-size: 30px;
+        color: green;
+    }
+
+    nav {
+        border-bottom: 1px solid black;
+        overflow: auto
+    }
+
+    .parallel_display {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    }
+
+    .parallel_display > section {
+    flex-basis: 40%; 
+    }
+
+
+    .outerBox {
+    display: inline-block;
+    display: grid;
+    grid-template-columns: auto auto auto;
+    padding: 10px;
+    }
+
+    .innerBox {
+    display: grid;
+    grid-template-columns: auto;
+    padding: 10px;
+    }
+
+     .box-item {
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    }
+
+    .text  {
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+
+</style>
+
+<nav style="border-bottom: 1px solid black;">
+    <ol style="float: right">
+        <li style="display:inline-block">Username:  {{ username }} </li>
+    </ol>
+    <ol style="float: left">
+        <li style="display:inline-block"></li>
+        <button onclick="logout()">logout</button>
+    </ol>
+    <ol style="margin-left: 200px">
+        <button onclick="message_app()">Switch to chat</button>
+    </ol>
+</nav>
+
+
+<header>
+  <h2>Knowledge repository </h2>
+</header>
+
+
+<main>
+    <button id="loadArticlesButton" style = "margin-bottom: 20px">Load articles</button>
+    <section id="Make_article">
+        <p class="text">Write an article: </p>
+        <button id = 'addBoxButton' onclick="showForm()">Write</button>
+    </section>
+
+    <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
+    <button style="display: none" id="saveButton" onclick=saveTitle() >Save Title</button>
+    <textarea id="Write_article" style="height: 100px; width: 500px; display: none" placeholder="Write an article"></textarea>
+    <button type="submit" formaction="/submit_article" style="display: none" onclick="saveArticle()" id="saveButton2">Save</button>
+
+
+    <section id="Comment_choice">
+        <p class="text">Comment on whose article: </p>
+        <input id="commentChoice" placeholder="Enter the id">
+        <button onclick="a()">Comment</button>
+    </section>
+
+    <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
+    <button type="submit" formaction="/submit_comment" id="saveButton3" style="display: none" onclick=aa() >Save</button>
+            
+    <div class="parallel_display" style="margin-top: 20px">
+        <section id="Modify_choice">
+            <p class="text">Modify which article? Enter the id  </p>
+            <input id="modifyChoice" placeholder="username">
+            <button onclick="b()">Modify</button>
+        </section>
+
+        <section id="Modify_box" style="display: none" >
+            <p class="text">Modify: </p>
+            <input id="message" placeholder="message">
+            <button onclick="leave()">Leave Room</button>
+        </section>
+
+    </div>
+
+    <div class="parallel_display">
+
+        <section id="Delete_choice">
+            <p class="text">Delete which article? Enter the id  </p>
+            <input id="deleteChoice"  placeholder="username">
+            <button type="submit" formaction="/delete_article"   id="deleteArticle"">delete article</button>
+            <button type="submit" formaction="/delete_comment"  id="deleteComment">delete comment</button>
+        </section>
+
+
+        <section id="Mute_choice">
+            <p class="text">Enter the username to mute/unmute: </p>
+            <input id="muteChoice" placeholder="username">
+            <button onclick="comment_choice()">Mute</button>
+            <button onclick="comment_choice()">Unmute</button>
+        </section>
+
+    </div>
+
+    <div class="outerBox" id="outerBox">
+    </div>
+
+
+
+
+    
+
+
+
+<script src="/static/js/libs/socket.io.min.js"></script>
+<script>
+    const titleContainer = document.getElementById('Write_title');
+    const articleContainer = document.getElementById('Write_article');
+    const commentContainer = document.getElementById('Write_comment');
+    const commentChoiceContainer = document.getElementById('commentChoice');
+    const modifyChoiceContainer = document.getElementById('modifyChoice');
+    const deleteChoiceContainer = document.getElementById('deleteChoice');
+    const muteChoiceContainer = document.getElementById('muteChoice');
+    let userTitle = ''; 
+    let articleContent = '';
+    let commentChoice = '';
+    let commentContent = '';
+    let deleteChoice = '';
+    let modifyChoice = '';
+    let muteChoice = '';
+    titleContainer.addEventListener('input', function() {
+        userTitle = titleContainer.value; 
+    });
+
+    articleContainer.addEventListener('input', function() {
+        const userInputValue = articleContainer.value;
+        const lines = userInputValue.split('\n');
+        articleContent = lines.join('<br>'); 
+    });
+    commentChoiceContainer.addEventListener('input', function() {
+        commentChoice = commentChoiceContainer.value;
+    });
+    modifyChoiceContainer.addEventListener('input', function() {
+        modifyChoice = modifyChoiceContainer.value;
+    });
+    deleteChoiceContainer.addEventListener('input', function() {
+        deleteChoice = deleteChoiceContainer.value;
+    });
+    muteChoiceContainer.addEventListener('input', function() {
+        muteChoice = muteChoiceContainer.value;
+    });
+    commentContainer.addEventListener('input', function() {
+        const userInputValue = commentContainer.value;
+        const lines = userInputValue.split('\n');
+        commentContent = lines.join('<br>');
+    });
+
+        
+    function showForm() {
+        $("#Make_article").hide();
+        $("#Write_title").show();
+        $("#saveButton").show();
+        
+    }
+    function saveTitle() {
+        $("#Write_title").hide();
+        $("#Write_article").show();
+        $("#saveButton").hide();
+        $("#saveButton2").show(); 
+    }
+    function saveArticle() {
+        $("#Write_article").hide();
+        $("#saveButton2").hide(); 
+        $("#Make_article").show();
+        
+    }
+    
+    function a() {
+        $("#Comment_choice").hide();
+        $("#Write_comment").show();
+        $("#saveButton3").show();
+    }
+
+    function aa() {
+        $("#Write_comment").hide();
+        $("#saveButton3").hide(); 
+        $("#Comment_choice").show();
+        
+    } 
+
+    function b() {
+        $("#Modify_choice").hide();
+        $("#Modify_box").show();
+    }
+
+    function c() {
+        $("#Delete_choice").hide();
+        $("#Delete_box").show();
+    }
+
+    function d() {
+        $("#Mute_choice").hide();
+        $("#Modify_box").show();
+    }
+
+
+    async function message_app() {
+        let msgURL = "{{ url_for('msg_user') }}";
+        res = await axios.post(msgURL, {});
+        window.open(res.data, "_self");
+    }
+
+    // JavaScript code (client-side)
+    document.getElementById('saveButton2').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/submit_article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userTitle, articleContent }),
+            });
+
+            if (response.ok) {
+                console.log('Article submitted successfully!');
+            } else {
+                console.error('Error submitting article:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    document.getElementById('saveButton3').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/submit_comment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ commentChoice, commentContent }),
+            });
+
+            if (response.ok) {
+                console.log('Comment submitted successfully!');
+            } else {
+                console.error('Error submitting comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    document.getElementById('deleteArticle').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/delete_article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deleteChoice }),
+            });
+
+            if (response.ok) {
+                console.log('Comment submitted successfully!');
+            } else {
+                console.error('Error submitting comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    document.getElementById('deleteComment').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/delete_comment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deleteChoice }),
+            });
+
+            if (response.ok) {
+                console.log('Comment submitted successfully!');
+            } else {
+                console.error('Error submitting comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    
+
+    let boxCount = 0
+    $(document).ready(function() {
+        // When the button is clicked
+        $('#loadArticlesButton').click(function() {
+            // Make an AJAX request to your Python function
+            $.ajax({
+                type: 'GET',
+                url: '/get_articles', // Replace with your actual URL
+                success: function(data) {
+                    $('#outerBox').empty();
+                    // Iterate through titles, usernames, and content
+                    for (let i = 0; i < data.title.length; i++) {
+                        // Create a new inner box
+                        const boxContainer = document.getElementById('outerBox');
+                        const newBox = document.createElement('div');
+                        newBox.classList.add('innerBox');
+                        let boxItemId = `box${boxCount}`;
+                        let commentId = `comment${boxCount}`;
+                        let box_article_id = `${data.article_id}`;
+                        // Set the IDs for the box item and comment elements
+                        const boxItem = document.createElement('div');
+                        boxItem.classList.add('box-item');
+                        boxItem.id = boxItemId;
+                        const comment = document.createElement('div');
+                        comment.classList.add('box-item');
+                        comment.id = commentId;
+                        // Append the box item and comment to the new inner box
+                        newBox.appendChild(boxItem);
+                        newBox.appendChild(comment);
+                        // Append the new inner box to the container
+                        boxContainer.appendChild(newBox);
+                        boxCount++;
+                        const listItem = document.createElement('li');
+                        listItem.style.listStyle = "none";
+                        listItem.innerHTML = `
+                            <p id=box_article_id style="float: right; float: top; margin-bottom: 10px;">ID:${data.article_id[i]}</p>
+                            <h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>${data.title[i]}</strong></h3>
+                            
+                            <p id="author" style="text-align: right; margin-bottom: 10px;">Written by user ${data.userName[i]}</p>
+                            <p>${data.content[i]}</p>
+                        `;
+                        document.getElementById(boxItemId).appendChild(listItem);
+                        for (let j = 0; j < data.comment[i].length; j++) {
+                            const commentItem = document.createElement('p');
+                            commentItem.innerHTML = `<p style="float: right; float: top; margin-bottom: 10px;">ID:${data.commentId[i][j]}</p>
+                            <h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>Comment by  ${data.commentName[i][j]}</strong></h3>
+                            <p>${data.comment[i][j]}</p>
+                            `;
+                            document.getElementById(commentId).appendChild(commentItem);
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching articles:', error);
+                }
+            });
+        });
+    });
+
+
+    
+    
+    
+</script>
+
+{% endblock %}
