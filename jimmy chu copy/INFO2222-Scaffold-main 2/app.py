@@ -50,6 +50,10 @@ def hash_password(password, salt):
 def login():    
     return render_template("login.jinja")
 
+@app.route('/logout_user', methods=['POST'])
+def logout_user():
+    return url_for('index')
+
 # handles a post request when the user clicks the log in button
 @app.route("/login/user", methods=["POST"])
 def login_user():
@@ -142,7 +146,7 @@ def home():
 def submit_article():
     data = request.get_json()
     user_title = data.get('userTitle')
-    username = data.get('username')
+    username = data.get('author')
     article_content = data.get('articleContent')
     db.store_article(username,user_title,article_content)
 
@@ -153,7 +157,7 @@ def submit_comment():
     data = request.get_json()
     article_id = data.get('commentChoice')
     comment = data.get('commentContent')
-    username = data.get('username')
+    username = data.get('author')
     db.store_comment(article_id,username,comment)
     return 'Comment submitted successfully!'
 

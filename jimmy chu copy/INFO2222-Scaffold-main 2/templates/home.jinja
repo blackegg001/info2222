@@ -6,23 +6,107 @@
 
 {% block content %} 
    <style>
-    nav {
-        border-bottom: 1px solid black;
-        overflow: auto
-    }
+    body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-    #message_box {
-        border: 1px solid black; 
-        height: 400px; 
-        width: 800px; 
-        overflow: auto;
-        padding: 2px;
-    }
+nav {
+    width: 100%;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-    .text  {
-        margin-top: 2px;
-        margin-bottom: 2px;
-    }
+h1 {
+    color: #333;
+    font-size: 24px;
+    text-align: left;
+    margin: 20px 0;
+}
+
+main {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin-top: 20px;
+}
+
+section {
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    margin: 10px;
+}
+
+#message_box, #chat_box {
+    flex: 1;
+}
+
+#friend_list, #deletefriend, #accept_or_reject {
+    flex: 1;
+    margin: 0 20px;
+}
+
+#friendreqlist {
+    flex: 1;
+}
+
+.text {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #0074D9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+li:last-child {
+    border-bottom: none;
+
+.top-section {
+    display: flex;
+    width: 100%; 
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+}
+}
+
 
 </style>
 
@@ -36,75 +120,88 @@
 <h1>Messaging App </h1>
 
 <main>
-    <section id="logout">
-        <p class="text">logout</p>
-        <button onclick="logout()">logout</button>
-    </section>
+    <!-- Top section for logout and repository -->
+    <div class="top-section">
+        <div class="left-column">
+            <section id="logout">
+                <p class="text">logout</p>
+                <button onclick="logout()">logout</button>
+            </section>
 
-    <section id="repository">
-        <p class="text">knowledge repository</p>
-        <button style = "margin-bottom: 20px" onclick="repository()">enter</button>
-    </section>
+            <section id="repository">
+                <p class="text">knowledge repository</p>
+                <button style="margin-bottom: 20px" onclick="repository()">enter</button>
+            </section>
+        </div>
+    </div>
+    
 
     <!-- The messages are displayed here -->
     <section id="message_box"></section>
 
     <!-- These part ideally should be a form element, 
     but I wrote this code a year ago and I don't want to break anything...-->
-    <section id="chat_box">
-        <p class="text">Chat with: </p>
-        <input id="receiver" placeholder="username">
-        <!-- MDN says its bad practice to use the onclick attribute,
-        but we're using it anyways coz its easy :)-->
-        <button onclick="join_room()">Chat</button>
+    <section>
+        <section id="chat_box">
+            <p class="text">Chat with: </p>
+            <input id="receiver" placeholder="username">
+            <!-- MDN says its bad practice to use the onclick attribute,
+            but we're using it anyways coz its easy :)-->
+            <button onclick="join_room()">Chat</button>
+        </section>
+
+        <!-- The (message) input box is set to display: none initially, 
+        this means the input box is "invisible" initially-->
+        <section id="input_box" style="display: none" >
+            <p class="text">Message: </p>
+            <input id="message" placeholder="message">
+            <button onclick="send()">Send</button>
+            <button onclick="leave()">Leave Room</button>
+        </section>
     </section>
 
-    <!-- The (message) input box is set to display: none initially, 
-    this means the input box is "invisible" initially-->
-    <section id="input_box" style="display: none" >
-        <p class="text">Message: </p>
-        <input id="message" placeholder="message">
-        <button onclick="send()">Send</button>
-        <button onclick="leave()">Leave Room</button>
+    <section>
+        <section id = "friend_list">
+            <p class="text">Friendlist: </p>
+            <ul>
+            {% for i in friend_list %}
+            <li>{{ i }}</li> 
+            {% endfor %}
+            </ul>
+        </section>
+        <section id = "deletefriend">
+            <p class="text">delete friend: </p>
+            <input id= "deletewho" placeholder="username">
+            <button onclick="unfriend()">unfriend</button>
+
+        </section>
     </section>
 
-    <section id = "friend_list">
-        <p class="text">Friendlist: </p>
-        <ul>
-        {% for i in friend_list %}
-        <li>{{ i }}</li> 
-        {% endfor %}
-        </ul>
-    </section>
+    
+    <section>
+        <section id = "friendreqlist">
+            <p class="text">Friend Requests: </p>
+            <ul>
+            {% for i in friend_req_list %}
+            <li>{{ i }}</li> 
+            {% endfor %}
+            </ul>
+        </section>
 
-    <section id = "accept or reject">
-        <p class="text">send friend request to: </p>
-        <input id= "friendreq_receiver">
-        <button onclick="send_friend_req()">Add friend</button>
+        <section id = "accept or reject">
+            <p class="text">send friend request to: </p>
+            <input id= "friendreq_receiver">
+            <button onclick="send_friend_req()">Add friend</button>
 
-        <p class="text">Accept friend request from: </p>
-        <input id= "acceptfriendreq_receiver">
-        <button onclick="acceptfriend_req()">Accept friend request</button>
+            <p class="text">Accept friend request from: </p>
+            <input id= "acceptfriendreq_receiver">
+            <button onclick="acceptfriend_req()">Accept friend request</button>
 
-        <p class="text">Reject friend request from: </p>
-        <input id= "rejectfriendreq_receiver">
-        <button onclick="rejectfriend_req()">Reject friend request</button>
-    </section>
-
-    <section id = "friendreqlist">
-        <p class="text">Friend Requests: </p>
-        <ul>
-        {% for i in friend_req_list %}
-        <li>{{ i }}</li> 
-        {% endfor %}
-        </ul>
-    </section>
-
-    <section id = "deletefriend">
-        <p class="text">delete friend: </p>
-        <input id= "deletewho" placeholder="username">
-        <button onclick="unfriend()">unfriend</button>
-
+            <p class="text">Reject friend request from: </p>
+            <input id= "rejectfriendreq_receiver">
+            <button onclick="rejectfriend_req()">Reject friend request</button>
+        </section>
+        
     </section>
 
     
@@ -169,6 +266,12 @@
         $("#message").val("");
         socket.emit("send", username, message, room_id);  
     } 
+
+    async function logout() {
+        let repURL = "{{ url_for('logout_user') }}";
+        res = await axios.post(repURL, {});
+        window.open(res.data, "_self");
+    }
 
 
 

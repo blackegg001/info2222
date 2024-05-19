@@ -85,8 +85,8 @@
     <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
     <button style="display: none" id="saveButton" onclick=saveTitle() >Save Title</button>
     <textarea id="Write_article" style="height: 100px; width: 500px; display: none" placeholder="Write an article"></textarea>
-    <button type="submit" formaction="/submit_article" style="display: none" onclick="saveArticle()" id="saveButton2">Save</button>
-
+    <button type="submit" formaction="/submit_article" style="display: none" onclick="articleEnd()" id="saveArticle">Save</button>
+    <button type="submit" formaction="/submit_article" style="display: none" onclick="articleEnd()" id="saveArticleAno">Save Anonymously</button>
 
     <section id="Comment_choice">
         <p class="text">Comment on whose article: </p>
@@ -95,8 +95,9 @@
     </section>
 
     <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
-    <button type="submit" formaction="/submit_comment" id="saveButton3" style="display: none" onclick=commentEnd() >Save</button>
-            
+    <button type="submit" formaction="/submit_comment" id="saveComment" style="display: none" onclick="commentEnd()" >Comment</button>
+    <button type="submit" formaction="/submit_comment" style="display: none" onclick="commentEnd()" id="saveCommentAno">Comment Anonymously</button>
+
     <div class="parallel_display" style="margin-top: 20px">
         <section id="Modify_choice">
             <p class="text">Modify which article? Enter the id  </p>
@@ -212,11 +213,13 @@
         $("#Write_title").hide();
         $("#Write_article").show();
         $("#saveButton").hide();
-        $("#saveButton2").show(); 
+        $("#saveArticle").show(); 
+        $("#saveArticleAno").show(); 
     }
-    function saveArticle() {
+    function articleEnd() {
         $("#Write_article").hide();
-        $("#saveButton2").hide(); 
+        $("#saveArticle").hide(); 
+        $("#saveArticleAno").hide(); 
         $("#Make_article").show();
         
     }
@@ -224,12 +227,14 @@
     function commentStart() {
         $("#Comment_choice").hide();
         $("#Write_comment").show();
-        $("#saveButton3").show();
+        $("#saveComment").show();
+        $("#saveCommentAno").show();
     }
 
     function commentEnd() {
         $("#Write_comment").hide();
-        $("#saveButton3").hide(); 
+        $("#saveComment").hide(); 
+        $("#saveComment").hide();
         $("#Comment_choice").show();
         
     } 
@@ -255,8 +260,14 @@
         window.open(res.data, "_self");
     }
 
-    // JavaScript code (client-side)
-    document.getElementById('saveButton2').addEventListener('click', async () => {
+    async function logout() {
+        let repURL = "{{ url_for('logout_user') }}";
+        res = await axios.post(repURL, {});
+        window.open(res.data, "_self");
+    }
+
+    document.getElementById('saveArticle').addEventListener('click', async () => {
+        const author = username;
         if (muted === "False") {
             try {
                 const response = await fetch('/submit_article', {
@@ -264,7 +275,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, userTitle, articleContent }),
+                    body: JSON.stringify({ author, userTitle, articleContent }),
                 });
 
                 if (response.ok) {
@@ -280,7 +291,33 @@
         }
     });
 
-    document.getElementById('saveButton3').addEventListener('click', async () => {
+    document.getElementById('saveArticleAno').addEventListener('click', async () => {
+        const author = "Anonymous";
+        if (muted === "False") {
+            try {
+                const response = await fetch('/submit_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ author, userTitle, articleContent }),
+                });
+
+                if (response.ok) {
+                    console.log('Article submitted successfully!');
+                } else {
+                    console.error('Error submitting article:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        } else {
+            alert("You have been muted")
+        }
+    });
+
+    document.getElementById('saveComment').addEventListener('click', async () => {
+        const author = username;
         if (muted === "False") {
             try {
                 const response = await fetch('/submit_comment', {
@@ -288,7 +325,34 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, commentChoice, commentContent }),
+                    body: JSON.stringify({ author, commentChoice, commentContent }),
+                });
+
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+            
+        } else {
+            alert("You have been muted")
+        }
+        
+    });
+
+    document.getElementById('saveCommentAno').addEventListener('click', async () => {
+        const author = "Anonymous";
+        if (muted === "False") {
+            try {
+                const response = await fetch('/submit_comment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ author, commentChoice, commentContent }),
                 });
 
                 if (response.ok) {
