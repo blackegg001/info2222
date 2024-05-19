@@ -11,7 +11,7 @@ or use SQLite, if you're not into fancy ORMs (but be mindful of Injection attack
 '''
 
 from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Dict
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy import UniqueConstraint
@@ -25,7 +25,7 @@ class Base(DeclarativeBase):
 from sqlalchemy import Boolean  # Import the Boolean class from sqlalchemy
 
 class User(Base):
-    __tablename__ = "Userinfo"
+    __tablename__ = "user"
     
     # looks complicated but basically means
     # I want a username column of type string,
@@ -37,7 +37,8 @@ class User(Base):
     salt: Mapped[int] = mapped_column(Integer)
     onlinestatus = Column(Boolean, nullable=False, default=False)
     role = Column(String, nullable=False, default="None")
-    
+    muteStatus = Column(Boolean, nullable=False, default=False)
+
 class Friend(Base):
     __tablename__ = "Friends"
     

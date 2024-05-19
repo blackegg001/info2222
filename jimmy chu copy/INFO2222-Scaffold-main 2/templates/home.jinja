@@ -150,6 +150,8 @@
     // Here's the Socket IO part of the code
     // things get a bit complicated here so brace yourselves :P
     let username = "{{ username }}";
+    let role = "{{ role }}";
+    let muted = "{{ muted }}";
 
     Cookies.set('username', username);
 
@@ -245,9 +247,14 @@
             alert(res);
         });
     }
+
     async function repository() {
         let repURL = "{{ url_for('repository_user') }}";
-        res = await axios.post(repURL, {});
+        res = await axios.post(repURL, {
+            username: username,
+            role: role,
+            muted: muted
+        });
         window.open(res.data, "_self");
     }
 

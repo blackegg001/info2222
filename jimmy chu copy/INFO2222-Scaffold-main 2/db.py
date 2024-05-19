@@ -25,14 +25,13 @@ Base.metadata.create_all(engine)
 i = 1
 j = 1
 def clear():
-    print("hhhhhhh")
     with Session(engine) as session:
         session.query(UserArticles).delete()
         session.commit()
 # inserts a user to the database
-def insert_user(username: str, password: str, salt):
+def insert_user(username: str, password: str, salt, role):
     with Session(engine) as session:
-        user = User(username=username, password=password, salt=salt)
+        user = User(username=username, password=password, salt=salt, role=role)
         session.add(user)
         session.commit()
 
@@ -43,6 +42,11 @@ def get_user(username):
         user = session.query(User).filter_by(username=username).first()
         print(f"Debug: Retrieved user with query - {user}")
         return user
+    
+def get_role(username):
+    with Session(engine) as session:
+        info = session.query(User).filter_by(username=username).first()
+        return info.role
 
 #get friendrequest
 def get_friendlist(username):
@@ -72,7 +76,6 @@ def get_friendlist(username):
 
             userlist.append(f"{u.username}, role:{u.role}, status: {status}")
             print(f"Debug: {u.username}, role:{u.role} status: {status}")
-        
 
         return userlist
 
@@ -170,7 +173,6 @@ def get_friends(username1, username2):
 def save_room(creator: str, participant: str):
     with Session(engine) as session:
         if creator and participant:
-            #room = Chatroom(creator=creator, participant=participant, name="room")
             room = Chatroom(creator=creator, participant=participant)
             session.add(room)
             session.commit()
@@ -192,12 +194,6 @@ def get_room(creator_name: str, recver_name: str):
         else:
             return None
 
-# get a room from the database by id
-def get_room_by_id(room_id: int):
-    with Session(engine) as session:
-        room = session.query(Chatroom).filter_by(id=room_id).first()
-        return room
-    
 
 # save chat message to the database
 def save_message(roomid: int, sender: User, receiver: User, message:str):
@@ -217,19 +213,14 @@ def get_messagelist(sender: str, receiver: str):
     with Session(engine) as session:
         if sender and receiver:
             # get room id
-            room_id = get_room(sender, receiver)
-            if -1 == room_id:
-                return []      
-            chat_records = session.query(Chatrecord).filter_by(chatroom_id=room_id).all()
-            #userr = session.query(User).filter_by(username=sender).first()
-            #passwd = userr.password
-            #key = generate_key_from_hashed_password(passwd, salt)
-            #messages_content = [{"sender": msg.sender_username, "content": Fernet(key).decrypt(msg.message).decode()} for msg in chat_records]
-            messages_content = [{"sender": msg.sender_username, "content": msg.message} for msg in chat_records]
-
+            #room_id = get_room(sender, receiver)
+               
+            chat_records = session.query(Chatrecord).filter_by(receiver=sender, sender=receiver).all()
+    
+            messages_content = [{"sender": msg.sender, "content": msg.message} for msg in chat_records]
+            #print(f"Debug: Retrieved messages{messages_content}")
             return messages_content
         return []
-
 
 
 def change_status(username, status):
@@ -381,8 +372,38 @@ def delete_comment(deleteChoice):
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
 
+def mute(username):
+    with Session(engine) as session:
+        try:
+            user = session.query(User).filter_by(username=username).first()
+            if user:
+                user.muteStatus = True
+                session.commit()
+            else:
+                return []  # User not found
+        except Exception as e:
+            print(f"Error retrieving articles: {e}")
+            return None  # Failed
+        
+def unmute(username):
+    with Session(engine) as session:
+        try:
+            user = session.query(User).filter_by(username=username).first()
+            if user:
+                user.muteStatus = False
+                session.commit()
+            else:
+                return []  # User not found
+        except Exception as e:
+            print(f"Error retrieving articles: {e}")
+            return None  # Failed
 
 
+def get_mute(username):
+    with Session(engine) as session:
+        info = session.query(User).filter_by(username=username).first()
+        return info.muteStatus
+    
 # Example usage:
 # articles = get_articles_by_username(session, username="blackegg")
 # for article in articles:

@@ -7,7 +7,6 @@ file containing all the routes related to socket.io
 from flask_socketio import join_room, emit, leave_room
 from flask import request
 
-
 try:
     from __main__ import socketio
 except ImportError:
@@ -33,7 +32,6 @@ def connect():
     print(f"Debug: {username} has connected to room {room_id}")
     db.change_status(username, True)
     emit("incoming", (f"{username} has connected", "green"), to=int(room_id))
-    
 
 # event when client disconnects
 # quite unreliable use sparingly
@@ -70,23 +68,7 @@ def send(username, message, room_id):
     db.save_message(db_room_id, username, receiver, message)
     print(f"Debug: saved: {username} sent a {message} to {receiver}")
 '''
-@socketio.on('send')
-def send(username, message, room_id):
-    # Emit the encrypted message to the room
-    emit("incoming", {"type": "encrypted", "data": {"username": username, "message": message}}, to=int(room_id))
 
-    # Get the intended recipient of the message based on the room_id
-    receiver = room.get_room_receiver(int(room_id), username)
-    if receiver is None:
-        print("oof")
-        return
-    print(receiver)
-    
-    # Check if a room exists in the database for the two users; if not, create it
-    db_room_id = db.get_room(username, receiver) or db.save_room(username, receiver)
-    print(f"creating room with {username}-username and {receiver}-receiver with id {db_room_id}")
-    # Store the message in the database
-    db.save_message(db_room_id, username, receiver, message)
 '''
     
 # join room event handler
@@ -103,7 +85,6 @@ def join(sender_name, receiver_name):
         return "Unknown sender!"
 
     room_id = room.get_room_id(receiver_name)
-    
 
     # if the user is already inside of a room 
     if room_id is not None:
@@ -114,6 +95,16 @@ def join(sender_name, receiver_name):
         emit("incoming", (f"{sender_name} has joined the room.", "green"), to=room_id, include_self=False)
         # emit only to the sender
         emit("incoming", (f"{sender_name} has joined the room. Now talking to {receiver_name}.", "green"))
+        
+        msglist = db.get_messagelist(sender_name, receiver_name)
+        print(f"Debug: {msglist}")
+        if len(msglist) > 0:
+            for i in msglist:
+                sender = i['sender']
+                content = i['content']
+                #print(f"Debug: sender type - {type(sender)}, content type - {type(content)}")  # Check data types
+                print(f"Debug: {sender} sent {content}")
+                emit("incoming", (f"{sender}: {content}.", "green"))
         return room_id
 
     # if the user isn't inside of any room, 
@@ -122,6 +113,18 @@ def join(sender_name, receiver_name):
     room_id = room.create_room(sender_name, receiver_name)
     join_room(room_id)
     emit("incoming", (f"{sender_name} has joined the room. Now talking to {receiver_name}.", "green"), to=room_id)
+
+    
+    msglist = db.get_messagelist(sender_name, receiver_name)
+    print(f"Debug: {msglist}")
+    if len(msglist) > 0:
+        for i in msglist:
+            sender = i['sender']
+            content = i['content']
+            #print(f"Debug: sender type - {type(sender)}, content type - {type(content)}")  # Check data types
+            print(f"Debug: {sender} sent {content}")
+            emit("incoming", (f"{sender}: {content}.", "green"))
+            #emit("incoming", {"type": "status", "data": {"message": f"yoyo", "color": "green"}}, room=room_id)
     return room_id
 
 # leave room event handler

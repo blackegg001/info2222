@@ -62,7 +62,7 @@
     </ol>
     <ol style="float: left">
         <li style="display:inline-block"></li>
-        <button onclick="logout()">logout</button>
+        <button onclick="logout()">logout </button>
     </ol>
     <ol style="margin-left: 200px">
         <button onclick="message_app()">Switch to chat</button>
@@ -117,7 +117,7 @@
         <section id="Delete_choice">
             <p class="text">Delete which article? Enter the id  </p>
             <input id="deleteChoice"  placeholder="username">
-            <button type="submit" formaction="/delete_article"   id="deleteArticle"">delete article</button>
+            <button type="submit" formaction="/delete_article"   id="deleteArticle">delete article</button>
             <button type="submit" formaction="/delete_comment"  id="deleteComment">delete comment</button>
         </section>
 
@@ -125,8 +125,8 @@
         <section id="Mute_choice">
             <p class="text">Enter the username to mute/unmute: </p>
             <input id="muteChoice" placeholder="username">
-            <button onclick="comment_choice()">Mute</button>
-            <button onclick="comment_choice()">Unmute</button>
+            <button type="submit" formaction="/mute" id="muteUser" >Mute</button>
+            <button type="submit" formaction="/unmute" id="unmuteUser" >Unmute</button>
         </section>
 
     </div>
@@ -151,6 +151,16 @@
     const modifyChoiceContainer = document.getElementById('modifyChoice');
     const deleteChoiceContainer = document.getElementById('deleteChoice');
     const muteChoiceContainer = document.getElementById('muteChoice');
+    let username = "{{username}}";
+    let role = "{{role}}";
+    let muted = "{{muted}}";
+    let permission = true;
+    if (role == "student") {
+        permission = false;
+    }
+    if (role == "academic") {
+        permission = false;
+    }
     let userTitle = ''; 
     let articleContent = '';
     let commentChoice = '';
@@ -239,138 +249,237 @@
         $("#Modify_box").hide();
     }
 
-
     async function message_app() {
         let msgURL = "{{ url_for('msg_user') }}";
-        res = await axios.post(msgURL, {});
+        res = await axios.post(msgURL, {username: username, muted : muted});
         window.open(res.data, "_self");
     }
 
     // JavaScript code (client-side)
     document.getElementById('saveButton2').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/submit_article', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userTitle, articleContent }),
-            });
+        if (muted === "False") {
+            try {
+                const response = await fetch('/submit_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, userTitle, articleContent }),
+                });
 
-            if (response.ok) {
-                console.log('Article submitted successfully!');
-            } else {
-                console.error('Error submitting article:', response.statusText);
+                if (response.ok) {
+                    console.log('Article submitted successfully!');
+                } else {
+                    console.error('Error submitting article:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
             }
-        } catch (error) {
-            console.error('Error:', error.message);
+        } else {
+            alert("You have been muted")
         }
     });
 
     document.getElementById('saveButton3').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/submit_comment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ commentChoice, commentContent }),
-            });
+        if (muted === "False") {
+            try {
+                const response = await fetch('/submit_comment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, commentChoice, commentContent }),
+                });
 
-            if (response.ok) {
-                console.log('Comment submitted successfully!');
-            } else {
-                console.error('Error submitting comment:', response.statusText);
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
             }
-        } catch (error) {
-            console.error('Error:', error.message);
+            
+        } else {
+            alert("You have been muted")
         }
+        
     });
 
     document.getElementById('modifyTitle').addEventListener('click', async () => {
         modifyEnd()
-        try {
-            const response = await fetch('/modify_title', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ modifyChoice, modifyContent }),
-            });
+        if (muted === true) {
+            alert("You have been muted")
+        }
+        else if (permission || articleDictionary[modifyChoice] === username) {
+            try {
+                const response = await fetch('/modify_title', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, modifyChoice, modifyContent }),
+                });
 
-            if (response.ok) {
-                console.log('Comment submitted successfully!');
-            } else {
-                console.error('Error submitting comment:', response.statusText);
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
             }
-        } catch (error) {
-            console.error('Error:', error.message);
+        } else {
+            alert("You have no permission to modify others' title")
         }
     });
 
     document.getElementById('modifyArticle').addEventListener('click', async () => {
         modifyEnd()
-        try {
-            const response = await fetch('/modify_article', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ modifyChoice, modifyContent }),
-            });
-
-            if (response.ok) {
-                console.log('Comment submitted successfully!');
-            } else {
-                console.error('Error submitting comment:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
+        if (muted === "True") {
+            alert("You have been muted")
         }
+        else if (permission || articleDictionary[modifyChoice] === username) {
+            try {
+                const response = await fetch('/modify_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, modifyChoice, modifyContent }),
+                });
+
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+
+        } else{
+            alert("You have no permission to modify others' article")
+        }
+        
     });
 
     document.getElementById('deleteArticle').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/delete_article', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ deleteChoice }),
-            });
-
-            if (response.ok) {
-                console.log('Comment submitted successfully!');
-            } else {
-                console.error('Error submitting comment:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
+        if (muted === true) {
+            alert("You have been muted")
         }
-    });
+        else if (permission){
+            try {
+                const response = await fetch('/delete_article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ deleteChoice }),
+                });
 
-    document.getElementById('deleteComment').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/delete_comment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ deleteChoice }),
-            });
-
-            if (response.ok) {
-                console.log('Comment submitted successfully!');
-            } else {
-                console.error('Error submitting comment:', response.statusText);
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
             }
-        } catch (error) {
-            console.error('Error:', error.message);
+        }   else{
+            alert("You have no permission to delete article")
         }
+        
     });
 
     
 
+    document.getElementById('deleteComment').addEventListener('click', async () => {
+        if (muted === true) {
+            alert("You have been muted")
+        }
+        else if (permission) {
+            try {
+                const response = await fetch('/delete_comment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ deleteChoice }),
+                });
+
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+
+        } else{
+            alert("You have no permission to delete comment")
+        }
+        
+    });
+
+    document.getElementById('muteUser').addEventListener('click', async () => {
+        if (muted === true) {
+            alert("You have been muted")
+        }
+        else if (permission){
+            try {
+                const response = await fetch('/mute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ muteChoice }),
+                });
+
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        }   else{
+            alert("You have no permission to mute user")
+        }
+        
+    });
+
+    document.getElementById('unmuteUser').addEventListener('click', async () => {
+        if (muted === true) {
+            alert("You have been muted")
+        }
+        else if (permission){
+            try {
+                const response = await fetch('/unmute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ muteChoice }),
+                });
+
+                if (response.ok) {
+                    console.log('Comment submitted successfully!');
+                } else {
+                    console.error('Error submitting comment:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        }   else{
+            alert("You have no permission to unmute user")
+        }
+        
+    });
+    
+    const articleDictionary = {};
     let boxCount = 0
     $(document).ready(function() {
         // When the button is clicked
@@ -383,6 +492,7 @@
                     $('#outerBox').empty();
                     // Iterate through titles, usernames, and content
                     for (let i = 0; i < data.title.length; i++) {
+                        articleDictionary[data.article_id[i]] = data.userName[i];
                         // Create a new inner box
                         const boxContainer = document.getElementById('outerBox');
                         const newBox = document.createElement('div');

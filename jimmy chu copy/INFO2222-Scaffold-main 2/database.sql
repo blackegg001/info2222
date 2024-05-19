@@ -3,6 +3,10 @@ ADD COLUMN salt VARCHAR(32);
 
 UPDATE User SET salt = '1c412654190c0e18a0cfca3b7d7a106e' WHERE username = 'blackegg';
 
+UPDATE Chatroom
+SET id = 1
+WHERE creator = 'blackegg';
+
 
 CREATE TABLE Friends (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,15 +57,6 @@ CREATE TABLE Chatroom (
     creator VARCHAR(255) NOT NULL,
     participant VARCHAR(255) NOT NULL,
 );
-INSERT INTO chatroom (id, creator, participant)
-VALUES (1, 'blackegg', 'jarvis');
-
-INSERT INTO chatroom (id, creator, participant)
-VALUES (2, 'blackegg', 'subject1');
-
-DELETE FROM chatroom
-WHERE creator = 'blackegg' AND participant = 'subject1';
-
 
 ALTER TABLE Chatroom DROP COLUMN created_at;
 ALTER TABLE Chatroom DROP COLUMN name;
@@ -74,16 +69,10 @@ INSERT INTO Friends (user_username1, user_username2) VALUES
 
 alter table user
 add column onlinestatus boolean default false;
+add column mutestatus boolean default false;
 
 alter table user
 add column role text default "none";
-
-alter table user
-add column last_chatroom_id default false;
-
-
-ALTER TABLE user
-RENAME TO Userinfo;
 
 CREATE TABLE UserArticles (
     article_id INT AUTO_INCREMENT PRIMARY KEY,
