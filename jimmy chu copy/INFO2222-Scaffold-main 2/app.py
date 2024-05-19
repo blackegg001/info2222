@@ -185,6 +185,23 @@ def submit_comment():
     db.store_comment(article_id,username,comment)
     return 'Comment submitted successfully!'
 
+@app.route('/modify_article', methods=['POST'])
+def modify_article():
+    data = request.get_json()
+    article_id = data.get('modifyChoice')
+    content = data.get('modifyContent')
+    db.modify_article(article_id,content)
+    return 'Comment submitted successfully!'
+
+@app.route('/modify_title', methods=['POST'])
+def modify_title():
+    data = request.get_json()
+    article_id = data.get('modifyChoice')
+    content = data.get('modifyContent')
+    db.modify_title(article_id,content)
+    return 'Comment submitted successfully!'
+
+
 @app.route('/delete_article', methods=['POST'])
 def delete_article():
     data = request.get_json()

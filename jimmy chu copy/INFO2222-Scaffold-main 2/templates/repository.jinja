@@ -3,7 +3,7 @@
 
 {% block content %} 
 <style>
-
+    $('#outerBox').empty();
     header {
         padding: 0px;
         text-align: center;
@@ -15,6 +15,10 @@
         border-bottom: 1px solid black;
         overflow: auto
     }
+    button:hover{
+        cursor: pointer;
+    }
+    
 
     .parallel_display {
     display: flex;
@@ -75,7 +79,7 @@
     <button id="loadArticlesButton" style = "margin-bottom: 20px">Load articles</button>
     <section id="Make_article">
         <p class="text">Write an article: </p>
-        <button id = 'addBoxButton' onclick="showForm()">Write</button>
+        <button id = 'addBoxButton' onclick="writeStart()">Write</button>
     </section>
 
     <textarea id="Write_title" style="height: 100px; width: 500px; display: none" placeholder="Write the title of article"></textarea>
@@ -87,23 +91,23 @@
     <section id="Comment_choice">
         <p class="text">Comment on whose article: </p>
         <input id="commentChoice" placeholder="Enter the id">
-        <button onclick="a()">Comment</button>
+        <button onclick="commentStart()">Comment</button>
     </section>
 
     <textarea id="Write_comment" style="display: none; height: 100px; width: 500px; " placeholder="Write the comment of article"></textarea>
-    <button type="submit" formaction="/submit_comment" id="saveButton3" style="display: none" onclick=aa() >Save</button>
+    <button type="submit" formaction="/submit_comment" id="saveButton3" style="display: none" onclick=commentEnd() >Save</button>
             
     <div class="parallel_display" style="margin-top: 20px">
         <section id="Modify_choice">
             <p class="text">Modify which article? Enter the id  </p>
-            <input id="modifyChoice" placeholder="username">
-            <button onclick="b()">Modify</button>
+            <input id="modifyChoice" placeholder="Enter the id">
+            <button onclick="modifyStart()">Start modify</button>
         </section>
 
         <section id="Modify_box" style="display: none" >
-            <p class="text">Modify: </p>
-            <input id="message" placeholder="message">
-            <button onclick="leave()">Leave Room</button>
+            <textarea id="Write_modify" placeholder='Write the modified content. Copy and paste for your convenience' style="height: 100px; width: 500px;" ></textarea>
+            <button type="submit" formaction="/modify_title" id = "modifyTitle">Modify title</button>
+            <button type="submit" formaction="/modify_article" id = "modifyArticle">Modify article</button>
         </section>
 
     </div>
@@ -142,6 +146,7 @@
     const titleContainer = document.getElementById('Write_title');
     const articleContainer = document.getElementById('Write_article');
     const commentContainer = document.getElementById('Write_comment');
+    const modifyContainer = document.getElementById('Write_modify');
     const commentChoiceContainer = document.getElementById('commentChoice');
     const modifyChoiceContainer = document.getElementById('modifyChoice');
     const deleteChoiceContainer = document.getElementById('deleteChoice');
@@ -152,6 +157,7 @@
     let commentContent = '';
     let deleteChoice = '';
     let modifyChoice = '';
+    let modifyContent = '';
     let muteChoice = '';
     titleContainer.addEventListener('input', function() {
         userTitle = titleContainer.value; 
@@ -179,9 +185,14 @@
         const lines = userInputValue.split('\n');
         commentContent = lines.join('<br>');
     });
+    modifyContainer.addEventListener('input', function() {
+        const userInputValue = modifyContainer.value;
+        const lines = userInputValue.split('\n');
+        modifyContent = lines.join('<br>');
+    });
 
         
-    function showForm() {
+    function writeStart() {
         $("#Make_article").hide();
         $("#Write_title").show();
         $("#saveButton").show();
@@ -200,32 +211,32 @@
         
     }
     
-    function a() {
+    function commentStart() {
         $("#Comment_choice").hide();
         $("#Write_comment").show();
         $("#saveButton3").show();
     }
 
-    function aa() {
+    function commentEnd() {
         $("#Write_comment").hide();
         $("#saveButton3").hide(); 
         $("#Comment_choice").show();
         
     } 
 
-    function b() {
-        $("#Modify_choice").hide();
-        $("#Modify_box").show();
-    }
-
-    function c() {
+    function deleteStart() {
         $("#Delete_choice").hide();
         $("#Delete_box").show();
     }
 
-    function d() {
-        $("#Mute_choice").hide();
+    function modifyStart() {
+        $("#Modify_choice").hide();
         $("#Modify_box").show();
+    }
+
+    function modifyEnd() {
+        $("#Modify_choice").show();
+        $("#Modify_box").hide();
     }
 
 
@@ -264,6 +275,48 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ commentChoice, commentContent }),
+            });
+
+            if (response.ok) {
+                console.log('Comment submitted successfully!');
+            } else {
+                console.error('Error submitting comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    document.getElementById('modifyTitle').addEventListener('click', async () => {
+        modifyEnd()
+        try {
+            const response = await fetch('/modify_title', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ modifyChoice, modifyContent }),
+            });
+
+            if (response.ok) {
+                console.log('Comment submitted successfully!');
+            } else {
+                console.error('Error submitting comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    document.getElementById('modifyArticle').addEventListener('click', async () => {
+        modifyEnd()
+        try {
+            const response = await fetch('/modify_article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ modifyChoice, modifyContent }),
             });
 
             if (response.ok) {
@@ -355,9 +408,9 @@
                         listItem.innerHTML = `
                             <p id=box_article_id style="float: right; float: top; margin-bottom: 10px;">ID:${data.article_id[i]}</p>
                             <h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>${data.title[i]}</strong></h3>
-                            
                             <p id="author" style="text-align: right; margin-bottom: 10px;">Written by user ${data.userName[i]}</p>
                             <p>${data.content[i]}</p>
+                            <button class="btn1">like</button> <button class="btn2">dislike</button>
                         `;
                         document.getElementById(boxItemId).appendChild(listItem);
                         for (let j = 0; j < data.comment[i].length; j++) {
@@ -365,12 +418,26 @@
                             commentItem.innerHTML = `<p style="float: right; float: top; margin-bottom: 10px;">ID:${data.commentId[i][j]}</p>
                             <h3 style="text-align: center; font-size: 15px; margin-bottom: 10px;"><strong>Comment by  ${data.commentName[i][j]}</strong></h3>
                             <p>${data.comment[i][j]}</p>
+                            <button class="btn1">like</button> <button class="btn2">dislike</button>
                             `;
                             document.getElementById(commentId).appendChild(commentItem);
                         }
                     }
+                    var btn1 = document.querySelector('.btn1');
+                    var btn2 = document.querySelector('.btn2');
+                    var addnum = 0;
+                    btn1.addEventListener('click',function(){
+                        ++addnum;
+                        btn1.textContent = "like+"+addnum;
+                    })
+                    var stepnum = 0;
+                    btn2.addEventListener('click',function(){
+                        --stepnum;
+                        btn2.textContent = "dislike"+stepnum;
+                    })
                 },
                 error: function(xhr, status, error) {
+                    $('#outerBox').empty();
                     console.error('Error fetching articles:', error);
                 }
             });

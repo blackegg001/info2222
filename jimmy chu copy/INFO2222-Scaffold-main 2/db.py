@@ -271,6 +271,29 @@ def store_article(userName, title, content):
             print(f"Error storing article: {e}")
             return False  # Failed
 
+def modify_article(article_id, content):
+    with Session(engine) as session:
+        try:
+            article_to_modify = session.query(UserArticles).filter_by(article_id = article_id).first()
+            article_to_modify.content = content
+            session.commit()
+            return True  # Success
+        except Exception as e:
+            session.rollback()
+            print(f"Error storing article: {e}")
+            return False  # Failed
+
+def modify_title(article_id, content):
+    with Session(engine) as session:
+        try:
+            title_to_modify = session.query(UserArticles).filter_by(article_id = article_id).first()
+            title_to_modify.title = content
+            session.commit()
+            return True  # Success
+        except Exception as e:
+            session.rollback()
+            print(f"Error storing article: {e}")
+            return False  # Failed
 
 
 def store_comment(article_id, commentName, comment):
